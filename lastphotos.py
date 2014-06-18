@@ -7,7 +7,7 @@ from __future__ import print_function
 
 QUANTITY = 1000
 SOURCE_DIR=u'/volume1/photo'
-YEARS = xrange(2009, 2015) #exclude last
+YEARS = xrange(2009, 1+2014) #exclude last
 DESTINATION_DIR=u'/volume1/backups/Dropbox/Fernando/Fotos dropbox Thais'
 
 # End customization ---------------------------------------
@@ -18,17 +18,18 @@ from pprint import pprint
 from PIL import Image
 #__debug__ = True
 
-years_paths = [ os.path.realpath(os.path.expanduser(os.path.join(SOURCE_DIR, str(year)))) for year in YEARS ]
-years_paths.sort(reverse=True)
 def fullpath(item, item2):
     return os.path.join(item, item2)
 
 def get_last_photos(quantity):
+    years_paths = [ os.path.realpath(os.path.expanduser(os.path.join(SOURCE_DIR, str(year)))) for year in YEARS ]
+    years_paths.sort(reverse=True)
     _LAST_X_PHOTOS = []
     for year_path in years_paths:
         for root, dirs, files in os.walk(year_path):
+            if dirs.count(u'eaDir'):
+                dirs.remove(u'eaDir')
             dirs.sort(reverse=True)
-            del(dirs[0])
             files.sort(reverse=True)
             files = [ _file for _file in files if _file.endswith(u'.jpg') and not _file.endswith(u'.DS_Store')]
             already_added = len(_LAST_X_PHOTOS)
@@ -43,16 +44,9 @@ def get_last_photos(quantity):
             break
     return _LAST_X_PHOTOS
 
-def resize(image):
-    print(u'r', end='')
-    img = Image.open(image)
-    if img.size[0]*img.size[1]>5000000:
-        new_img = img.resize((img.size[0]/2, img.size[1]/2))
-        new_img.save(image, exif=img.info[u'exif'])
-
 def bigger(image):
     img = Image.open(image)
-    return True if img.size[0]*img.size[1]>5000000 else False
+    return True if img.size[0]*img.size[1]>4000000 else False
 
 if __name__ == '__main__':
     last_photos = get_last_photos(QUANTITY)
@@ -76,35 +70,34 @@ if __name__ == '__main__':
     # print(u'remove', photos_to_remove_fullpath)
 
     total_photos_to_add = len(photos_to_add_tuple_list)
-    print(u'Adding {} photos'.format(total_photos_to_add))
+    if __debug__: print(u'Adding {} photos'.format(total_photos_to_add))
     for i, item in enumerate(photos_to_add_tuple_list):
         src, dst = item
-        print(total_photos_to_add - i, end=u'.')
+        if __debug__: print(total_photos_to_add - i, end=u'.')
         # print(src, dst)
-        # copy2(src, dst)
-    print()
+        copy2(src, dst)
+    if __debug__: print()
 
     total_photos_to_remove = len(photos_to_remove_fullpath)
-    print(u'Removing {} photos'.format(total_photos_to_remove))
+    if __debug__: print(u'Removing {} photos'.format(total_photos_to_remove))
     for i, photo in enumerate(photos_to_remove_fullpath):
-        print(total_photos_to_remove - i, end=u'.')
+        if __debug__: print(total_photos_to_remove - i, end=u'.')
         # print(photo)
-        # os.remove(photo)
-    print()
+        os.remove(photo)
+    if __debug__: print()
 
     photos_to_resize = os.listdir(os.path.expanduser(DESTINATION_DIR))
     photos_to_resize = [ os.path.join(os.path.expanduser(DESTINATION_DIR), os.path.basename(photo)) for photo in photos_to_resize if not photo.endswith(u'.DS_Store') and bigger(os.path.join(os.path.expanduser(DESTINATION_DIR), os.path.basename(photo))) ]
 
     # photos_to_resize = photos_to_resize[:10]
-    print(u'resize', photos_to_resize)
+    # print(u'resize', photos_to_resize)
 
-    # total_photos_to_resize = len(photos_to_resize)
-    # print(u'Resizing {} photos'.format(total_photos_to_resize))
-    # for i, photo in enumerate(photos_to_resize):
-    #     print(total_photos_to_resize - i, end=u'.')
-    #     #print()
-    #     #print(photo)
-    #     img = Image.open(photo)
-    #     new_img = img.resize((img.size[0]/2, img.size[1]/2))
-    #     new_img.save(photo, exif=img.info[u'exif'])
-    # print()
+    total_photos_to_resize = len(photos_to_resize)
+    if __debug__: print(u'Resizing {} photos'.format(total_photos_to_resize))
+    for i, photo in enumerate(photos_to_resize):
+        if __debug__: print(total_photos_to_resize - i, end=u'.')
+        #print(photo)
+        img = Image.open(photo)
+        new_img = img.resize((img.size[0]/2, img.size[1]/2))
+        new_img.save(photo, exif=img.info[u'exif'])
+    if __debug__: print()
